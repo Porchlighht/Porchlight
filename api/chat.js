@@ -43,37 +43,35 @@ export default async function handler(req, res) {
       parts: [{ text: turn.text }]
     }));
 
-  try {
-    // Model name changes as Google ships new versions — check the current
-    // free-tier model id at https://ai.google.dev/gemini-api/docs/models
-    // and swap it in below if this one has been retired.
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents,
-          generationConfig: { temperature: 0.8, maxOutputTokens: 200 }
-        })
-      }
-    );
-
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      console.error('Gemini error:', errText);
-      return res.status(502).json({ error: 'Gemini request failed' });
+try {
+  const geminiRes = await fetch(
+    `https://googleapis.com{apiKey}`,
+    {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify({
+        system_instruction: {
+          parts: [{ text: SYSTEM_PROMPT }]
+        },
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: "Hello! Analyze this text input." }]
+          }
+        ],
+        generationConfig: { 
+          temperature: 0.8, 
+          maxOutputTokens: 200 
+        }
+      })
     }
+  );
 
-    const data = await geminiRes.json();
-    const reply =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
-      "I'm here — could you tell me a little more about that?";
+  const data = await geminiRes.json();
+  console.log(data);
 
-    return res.status(200).json({ reply });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Server error' });
-  }
-}
+} catch (error) {
+  console.error("Gemini API Error:", error);
+} 
